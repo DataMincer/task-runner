@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+/** Copy this file to your project's bin folder and rename */
+
+if (file_exists($file = dirname(__DIR__) . "/../../autoload.php")) {
+  /** @noinspection PhpIncludeInspection */
+  require $file;
+}
+else {
+  die("Can't find autoload.php");
+}
+
+/** Replace 'TaskRunner\App' class with your version of the App class, e.g. MyProject\App() */
+(new TaskRunner\App())->run();

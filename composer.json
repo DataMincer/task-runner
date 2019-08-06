@@ -1,0 +1,23 @@
+{
+  "name": "onkeltem/task-runner",
+  "description": "Extensible PHP Task Runner",
+  "version": "0.1",
+  "license": "LGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Artiom Neganov",
+      "email": "aneganov@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "type": "project",
+  "minimum-stability": "dev",
+  "require": {
+    "docopt/docopt": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "TaskRunner\\": "src/"
+    }
+  }
+}
