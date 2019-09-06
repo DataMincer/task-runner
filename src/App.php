@@ -17,6 +17,9 @@ class App {
 
   protected $appClassNs;
 
+  /** @var App */
+  private static $instance = NULL;
+
   protected static $paramsMap = [
     'opt1' => '--opt1',
     'opt2' => '--opt2',
@@ -26,13 +29,24 @@ class App {
   /** @var LoggerInterface */
   protected $logger;
 
-  public function __construct() {
+  public function __construct($params = []) {
     $this->setErrorHandler();
     $this->logger = new Logger();
-    $args = Docopt::handle($this->getUsageDefinition())->args;
+    $args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
     $this->options = $this->processArgs($args);
     $this->taskFactory = $this->createTaskFactory();
     $this->taskName = $this->getTaskNameFromParams($args);
+  }
+
+  public static function runApp($params = []) {
+    static::getApp($params)->run();
+  }
+
+  public static function getApp($params = []) {
+    if (static::$instance === NULL) {
+      static::$instance = new App($params);
+    }
+    return static::$instance;
   }
 
   protected function getTaskNameFromParams($params) {
