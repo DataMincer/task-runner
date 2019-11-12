@@ -7,7 +7,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionException;
 
-class App {
+abstract class App {
 
   /** @var TaskFactory */
   protected $taskFactory;
@@ -17,38 +17,32 @@ class App {
 
   protected $appClassNs;
 
-  /** @var App */
-  private static $instance = NULL;
-
-  protected static $paramsMap = [
-    'opt1' => '--opt1',
-    'opt2' => '--opt2',
-    'params' => 'PARAMS',
-  ];
+  protected static $paramsMap = [];
 
   /** @var LoggerInterface */
   protected $logger;
 
   public function __construct($params = []) {
     $this->setErrorHandler();
-    $this->logger = new Logger();
     $args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
-    $this->options = $this->processArgs($args);
-    $this->taskFactory = $this->createTaskFactory();
-    $this->taskName = $this->getTaskNameFromParams($args);
-  }
-
-  public static function runApp($params = []) {
-    static::getApp($params)->run();
-  }
-
-  public static function getApp($params = []) {
-    if (static::$instance === NULL) {
-      static::$instance = new App($params);
+    // Configure our logger at the very beginning
+    $this->logger = new Logger($this->getDebug($args));
+    try {
+      $this->options = $this->processArgs($args);
+      $this->taskFactory = $this->createTaskFactory();
+      $this->taskName = $this->getTaskNameFromParams($args);
     }
-    return static::$instance;
+    catch (TaskRunnerException $e) {
+      $this->logger->err($e->getMessage());
+      die(1);
+    }
   }
 
+  /**
+   * @param $params
+   * @return mixed
+   * @throws TaskRunnerException
+   */
   protected function getTaskNameFromParams($params) {
     $tasks = array_filter($params, function($item) {
       return is_bool($item) && $item;
@@ -56,31 +50,35 @@ class App {
     $task = current(array_keys($tasks));
 
     if (!$task) {
-      $this->logger()->err('Task not provided');
-      die(1);
+      throw new TaskRunnerException('Task not provided');
     }
 
     if (!in_array($task, $this->taskFactory->getTasks())) {
-      $this->logger()->err("Task not implemented: $task");
-      die(1);
+      throw new TaskRunnerException("Task not implemented: $task");
     }
 
     return $task;
   }
 
+  /**
+   * Discover and instantiate TaskFactory
+   * @return mixed
+   * @throws TaskRunnerException
+   */
   protected function createTaskFactory() {
-    // Discover and instantiate TaskFactory
     try {
       $this->appClassNs = (new ReflectionClass($this))->getNamespaceName();
       $class = class_exists($this->appClassNs . '\\' . 'TaskFactory') ? $this->appClassNs . '\\' . 'TaskFactory' : 'TaskRunner\\' . 'TaskFactory';
       return new $class($this, $this->options);
     }
     catch(ReflectionException $e) {
-      $this->logger()->err('Tasks discover error: ' . $e->getMessage());
-      die(1);
+      throw new TaskRunnerException('Tasks discover error: ' . $e->getMessage());
     }
   }
 
+  /**
+   * Enables treating E_NOTICE as errors
+   */
   protected function setErrorHandler() {
     // Catch all notices
     set_error_handler(function($errno, $errstr, $errfile, $errline) {
@@ -88,6 +86,9 @@ class App {
     }, E_NOTICE);
   }
 
+  /**
+   * @param TaskInterface $task
+   */
   public function run($task = NULL) {
     try {
       $this->taskFactory->runTask(isset($task) ? $task : $this->taskName, $this->options);
@@ -98,6 +99,11 @@ class App {
     }
   }
 
+  /**
+   * @param $args
+   * @return array
+   * @throws TaskRunnerException
+   */
   protected function processArgs($args) {
     $result = [];
     foreach (static::$paramsMap as $key => $arg) {
@@ -128,32 +134,19 @@ class App {
     return $this->taskFactory;
   }
 
-  public function _getAppClassNs() {
-    return $this->appClassNs;
-  }
-
   public function logger() {
     return $this->logger;
   }
 
-  protected function getUsageDefinition() {
-    return <<<DOC
-Usage:
-  my-app (cmd1 [PARAMS ...] [--opt1=OPT1] |
-          cmd2 [PARAMS ...] [--opt2=OPT2])
-
-Commands:
-  cmd1                Command 1 description.
-  cmd2                Command 2 description.
-
-Options:
-  --opt1=OPT1         Option 1 description. [Default: option1_value]
-  --opt2=OPT2         Option 2 description. [Default: option2_value]
-
-Arguments:
-  cmd1 [PARAMS ...]   Execute command 1 with array argument PARAM.
-  cmd2 [PARAMS ...]   Execute command 2 with array argument PARAM. 
-DOC;
+  protected static function getDebug($args) {
+    return isset($args['--debug']);
   }
+
+  /**
+   * Main function for defining Docopt grammar
+   * @see: https://github.com/docopt/docopt.php
+   * @return mixed
+   */
+  abstract protected function getUsageDefinition();
 
 }

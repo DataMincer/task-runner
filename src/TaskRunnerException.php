@@ -2,6 +2,8 @@
 
 namespace TaskRunner;
 
-class TaskRunnerException extends \RuntimeException {
+use Exception;
+
+class TaskRunnerException extends Exception {
 
 }
