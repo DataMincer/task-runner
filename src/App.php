@@ -11,26 +11,26 @@ abstract class App {
 
   /** @var TaskFactory */
   protected $taskFactory;
-
   protected $options;
   protected $taskName;
-
   protected $appClassNs;
-
   protected static $paramsMap = [];
-
   /** @var LoggerInterface */
   protected $logger;
+  /**
+   * @var array
+   */
+  private $args;
 
   public function __construct($params = []) {
     $this->setErrorHandler();
-    $args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
+    $this->args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
     // Configure our logger at the very beginning
-    $this->logger = new Logger($this->getDebug($args));
+    $this->logger = new Logger($this->isDebug());
     try {
-      $this->options = $this->processArgs($args);
+      $this->options = $this->processArgs();
       $this->taskFactory = $this->createTaskFactory();
-      $this->taskName = $this->getTaskNameFromParams($args);
+      $this->taskName = $this->getTaskName();
     }
     catch (TaskRunnerException $e) {
       $this->logger->err($e->getMessage());
@@ -39,12 +39,11 @@ abstract class App {
   }
 
   /**
-   * @param $params
    * @return mixed
    * @throws TaskRunnerException
    */
-  protected function getTaskNameFromParams($params) {
-    $tasks = array_filter($params, function($item) {
+  protected function getTaskName() {
+    $tasks = array_filter($this->args, function($item) {
       return is_bool($item) && $item;
     });
     $task = current(array_keys($tasks));
@@ -94,33 +93,37 @@ abstract class App {
       $this->taskFactory->runTask(isset($task) ? $task : $this->taskName, $this->options);
     }
     catch(Exception $e) {
-      $this->logger()->err($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
+      if ($this->isDebug()) {
+        $this->logger()->err($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
+      }
+      else {
+        $this->logger()->err($e->getMessage());
+      }
       die(1);
     }
   }
 
   /**
-   * @param $args
    * @return array
    * @throws TaskRunnerException
    */
-  protected function processArgs($args) {
+  protected function processArgs() {
     $result = [];
     foreach (static::$paramsMap as $key => $arg) {
       if (!is_array($arg)) {
-        if (!array_key_exists($arg, $args)) {
+        if (!array_key_exists($arg, $this->args)) {
           throw New TaskRunnerException("Params error: arg/option not found '$arg'");
         }
-        $result[$key] = $args[$arg];
+        $result[$key] = $this->args[$arg];
       }
       else {
         $result[$key] = NULL;
         foreach ($arg as $sub_arg) {
-          if (!array_key_exists($sub_arg, $args)) {
+          if (!array_key_exists($sub_arg, $this->args)) {
             throw New TaskRunnerException("Params error: sub-arg not found '$sub_arg'");
           }
           else {
-            if ($args[$sub_arg]) {
+            if ($this->args[$sub_arg]) {
               $result[$key] = $sub_arg;
             }
           }
@@ -138,8 +141,8 @@ abstract class App {
     return $this->logger;
   }
 
-  protected static function getDebug($args) {
-    return isset($args['--debug']);
+  protected function isDebug() {
+    return isset($this->args['--debug']) && $this->args['--debug'];
   }
 
   /**

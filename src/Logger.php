@@ -19,7 +19,7 @@ class Logger implements LoggerInterface {
   }
 
   public function msg($msg) {
-    fwrite(STDERR,"\e[1;37m" . $msg . "\e[0m\n");
+    fwrite(STDOUT,$msg . "\n");
   }
 
   public function debug($msg) {
