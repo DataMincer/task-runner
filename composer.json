@@ -1,7 +1,6 @@
 {
   "name": "onkeltem/task-runner",
   "description": "Extensible PHP Task Runner",
-  "version": "0.0.1",
   "license": "LGPL-3.0-or-later",
   "authors": [
     {
