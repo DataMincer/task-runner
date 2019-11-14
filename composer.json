@@ -13,7 +13,8 @@
   "type": "project",
   "minimum-stability": "dev",
   "require": {
-    "docopt/docopt": "*"
+    "docopt/docopt": "*",
+    "monolog/monolog": "2.0.1"
   },
   "autoload": {
     "psr-4": {

@@ -4,10 +4,16 @@ namespace TaskRunner;
 
 use Docopt;
 use Exception;
+use Monolog\Processor\PsrLogMessageProcessor;
 use ReflectionClass;
 use ReflectionException;
+use Psr\Log\LoggerInterface;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 abstract class App {
+
+  public static $name = 'default';
 
   /** @var TaskFactory */
   protected $taskFactory;
@@ -25,15 +31,21 @@ abstract class App {
   public function __construct($params = []) {
     $this->setErrorHandler();
     $this->args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
-    // Configure our logger at the very beginning
-    $this->logger = new Logger($this->isDebug());
+    try {
+      $this->logger = new Logger(static::$name);
+      $this->logger->pushHandler(new StreamHandler(STDERR, $this->isDebug() ? Logger::DEBUG : Logger::INFO));
+    } catch (Exception $e) {
+      echo $e->getMessage();
+      die(1);
+    }
+    $this->logger->pushProcessor(new PsrLogMessageProcessor());
     try {
       $this->options = $this->processArgs();
       $this->taskFactory = $this->createTaskFactory();
       $this->taskName = $this->getTaskName();
     }
     catch (TaskRunnerException $e) {
-      $this->logger->err($e->getMessage());
+      $this->logger->error($e->getMessage());
       die(1);
     }
   }
@@ -94,10 +106,10 @@ abstract class App {
     }
     catch(Exception $e) {
       if ($this->isDebug()) {
-        $this->logger()->err($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
+        $this->logger()->error($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
       }
       else {
-        $this->logger()->err($e->getMessage());
+        $this->logger()->error($e->getMessage());
       }
       die(1);
     }

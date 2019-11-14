@@ -2,6 +2,8 @@
 
 namespace TaskRunner;
 
+use Psr\Log\LoggerInterface;
+
 abstract class Task implements TaskInterface {
 
   protected static $taskId;
