@@ -1,7 +1,7 @@
 {
   "name": "onkeltem/task-runner",
   "description": "Extensible PHP Task Runner",
-  "version": "0.1",
+  "version": "0.0.1",
   "license": "LGPL-3.0-or-later",
   "authors": [
     {
@@ -13,6 +13,7 @@
   "type": "project",
   "prefer-stable": true,
   "require": {
+    "php": "^7.2",
     "docopt/docopt": "^1.0.*",
     "monolog/monolog": "^2.0.*"
   },
