@@ -5,8 +5,6 @@ namespace TaskRunner;
 use Docopt;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
-use ReflectionClass;
-use ReflectionException;
 use Psr\Log\LoggerInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -89,10 +87,10 @@ abstract class App {
     }
     catch(Exception $e) {
       if ($this->isDebug()) {
-        $this->logger()->error($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
+        $this->logger->error($e->getMessage() . "\n" . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine());
       }
       else {
-        $this->logger()->error($e->getMessage());
+        $this->logger->error($e->getMessage());
       }
       die(1);
     }
