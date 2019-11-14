@@ -20,10 +20,12 @@ abstract class Task implements TaskInterface {
     return static::$taskId;
   }
 
+  /** @noinspection PhpUnused */
   public static function requiresVersionCheck() {
     return static::$versionCheck;
   }
 
+  /** @noinspection PhpUnused */
   public function __construct(App $app, $options) {
     $this->app = $app;
     $this->options = $options;

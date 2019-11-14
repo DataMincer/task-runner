@@ -19,7 +19,6 @@ abstract class App {
   protected $taskFactory;
   protected $options;
   protected $taskName;
-  protected $appClassNs;
   protected static $paramsMap = [];
   /** @var LoggerInterface */
   protected $logger;
@@ -41,7 +40,7 @@ abstract class App {
     $this->logger->pushProcessor(new PsrLogMessageProcessor());
     try {
       $this->options = $this->processArgs();
-      $this->taskFactory = $this->createTaskFactory();
+      $this->taskFactory = new TaskFactory($this, $this->options);
       $this->taskName = $this->getTaskName();
     }
     catch (TaskRunnerException $e) {
@@ -69,22 +68,6 @@ abstract class App {
     }
 
     return $task;
-  }
-
-  /**
-   * Discover and instantiate TaskFactory
-   * @return mixed
-   * @throws TaskRunnerException
-   */
-  protected function createTaskFactory() {
-    try {
-      $this->appClassNs = (new ReflectionClass($this))->getNamespaceName();
-      $class = class_exists($this->appClassNs . '\\' . 'TaskFactory') ? $this->appClassNs . '\\' . 'TaskFactory' : 'TaskRunner\\' . 'TaskFactory';
-      return new $class($this, $this->options);
-    }
-    catch(ReflectionException $e) {
-      throw new TaskRunnerException('Tasks discover error: ' . $e->getMessage());
-    }
   }
 
   /**
@@ -143,10 +126,6 @@ abstract class App {
       }
     }
     return $result;
-  }
-
-  public function taskFactory() {
-    return $this->taskFactory;
   }
 
   public function logger() {
