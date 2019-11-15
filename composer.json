@@ -10,11 +10,10 @@
     }
   ],
   "type": "project",
-  "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
     "php": "^7.2",
-    "docopt/docopt": "*",
+    "docopt/docopt": "1.0.2",
     "monolog/monolog": "^2.0.1"
   },
   "autoload": {
