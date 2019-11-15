@@ -14,7 +14,7 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.2",
-    "docopt/docopt": "*",
+    "docopt/docopt": "dev-master",
     "monolog/monolog": "^2.0.1"
   },
   "autoload": {
