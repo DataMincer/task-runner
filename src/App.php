@@ -2,12 +2,14 @@
 
 namespace TaskRunner;
 
+use Bramus\Monolog\Formatter\ColoredLineFormatter;
 use Docopt;
 use Exception;
 use Monolog\Processor\PsrLogMessageProcessor;
 use Psr\Log\LoggerInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
 
 abstract class App {
 
@@ -30,12 +32,26 @@ abstract class App {
     $this->args = Docopt::handle($this->getUsageDefinition(), $params ? ['argv' => $params] : [])->args;
     try {
       $this->logger = new Logger(static::$name);
-      $this->logger->pushHandler(new StreamHandler(STDERR, $this->isDebug() ? Logger::DEBUG : Logger::INFO));
+
+      if ($this->isDebug()) {
+        $debug_handler = new StreamHandler(STDERR, $this->isDebug() ? Logger::DEBUG : Logger::INFO);
+        $debug_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n"));
+        $this->logger->pushHandler($debug_handler);
+      }
+
+      $message_handler = new StreamHandler(STDOUT, Logger::INFO, FALSE);
+      $message_handler->setFormatter(new LineFormatter("%message%\n"));
+      $this->logger->pushHandler($message_handler);
+
+      $error_handler = new StreamHandler(STDERR, Logger::WARNING, FALSE);
+      $error_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n"));
+      $this->logger->pushHandler($error_handler);
     } catch (Exception $e) {
       echo $e->getMessage();
       die(1);
     }
     $this->logger->pushProcessor(new PsrLogMessageProcessor());
+
     try {
       $this->options = $this->processArgs();
       $this->taskFactory = new TaskFactory($this, $this->options);
