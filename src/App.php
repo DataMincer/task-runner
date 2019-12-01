@@ -68,7 +68,7 @@ abstract class App {
    * @throws TaskRunnerException
    */
   protected function getTaskName() {
-    $tasks = array_filter($this->args, function($item) {
+    $tasks = array_filter($this->options, function($item) {
       return is_bool($item) && $item;
     });
     $task = current(array_keys($tasks));
@@ -91,7 +91,7 @@ abstract class App {
     // Catch all notices
     set_error_handler(function($errno, $errstr, $errfile, $errline) {
       throw new TaskRunnerException("PHP Notice[$errno]: $errstr" . "\n$errfile:$errline");
-    }, E_NOTICE);
+    }, E_NOTICE | E_WARNING);
   }
 
   /**
@@ -120,10 +120,12 @@ abstract class App {
     $result = [];
     foreach (static::$paramsMap as $key => $arg) {
       if (!is_array($arg)) {
-        if (!array_key_exists($arg, $this->args)) {
-          throw New TaskRunnerException("Params error: arg/option not found '$arg'");
+        if ((is_string($arg) || is_numeric($arg)) && array_key_exists($arg, $this->args)) {
+          $result[$key] = $this->args[$arg];
         }
-        $result[$key] = $this->args[$arg];
+        else {
+          $result[$key] = $arg;
+        }
       }
       else {
         $result[$key] = NULL;
