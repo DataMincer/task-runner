@@ -1,6 +1,6 @@
 {
-  "name": "onkeltem/task-runner",
-  "description": "Extensible PHP Task Runner",
+  "name": "datamincer/task-runner",
+  "description": "DataMiner: Extensible PHP Task Runner",
   "license": "LGPL-3.0-or-later",
   "authors": [
     {
@@ -9,12 +9,10 @@
       "role": "Developer"
     }
   ],
-  "type": "project",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
+  "type": "library",
   "require": {
     "php": "^7.2",
-    "docopt/docopt": "dev-master",
+    "docopt/docopt": "^1.0.3",
     "monolog/monolog": "^2.0.1",
     "bramus/monolog-colored-line-formatter": "^3.0"
   },
