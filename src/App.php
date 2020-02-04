@@ -35,16 +35,16 @@ abstract class App {
 
       if ($this->isDebug()) {
         $debug_handler = new StreamHandler(STDERR, $this->isDebug() ? Logger::DEBUG : Logger::INFO);
-        $debug_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n"));
+        $debug_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n", NULL, TRUE));
         $this->logger->pushHandler($debug_handler);
       }
 
       $message_handler = new StreamHandler(STDOUT, Logger::INFO, FALSE);
-      $message_handler->setFormatter(new LineFormatter("%message%\n"));
+      $message_handler->setFormatter(new LineFormatter("%message%\n", NULL, TRUE));
       $this->logger->pushHandler($message_handler);
 
       $error_handler = new StreamHandler(STDERR, Logger::WARNING, FALSE);
-      $error_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n"));
+      $error_handler->setFormatter(new ColoredLineFormatter(new CliColorScheme(), "%message%\n", NULL, TRUE));
       $this->logger->pushHandler($error_handler);
     } catch (Exception $e) {
       echo $e->getMessage();
