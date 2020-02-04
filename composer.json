@@ -1,6 +1,6 @@
 {
   "name": "datamincer/task-runner",
-  "description": "DataMiner: Extensible PHP Task Runner",
+  "description": "DataMincer: Extensible PHP Task Runner",
   "license": "LGPL-3.0-or-later",
   "authors": [
     {
